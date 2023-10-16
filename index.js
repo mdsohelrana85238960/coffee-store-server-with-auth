@@ -34,10 +34,19 @@ async function run() {
 
     const coffeeCollection = client.db("coffeeDB").collection("coffee");
 
+    const userCollection = client.db("coffeeDB").collection("user");
+
 app.get('/coffee', async(req, res) =>{
     const cursor = coffeeCollection.find();
     const result = await cursor.toArray();
     res.send(result)
+
+})
+
+app.get('/user', async(req, res) =>{
+    const cursor = userCollection.find();
+    const users = await cursor.toArray();
+    res.send(users)
 
 })
 
@@ -54,6 +63,18 @@ app.get('/coffee/:id', async(req, res) =>{
         console.log(newCoffee);
         const result = await coffeeCollection.insertOne(newCoffee);
         res.send(result)
+    })
+
+    app.patch('/user', async(req, res) =>{
+      const user = req.body;
+      const filter = {email: user.email}
+      const updateDoc = {
+        $set : {
+          lastLoggedAt : user.lastLoggedAt
+        }
+      }
+      const result = await userCollection.updateOne(filter,updateDoc)
+      res.send(result)
     })
 
     app.put('/coffee/:id', async(req, res) =>{
@@ -79,6 +100,24 @@ app.get('/coffee/:id', async(req, res) =>{
       const result = await coffeeCollection.deleteOne(query);
       res.send(result);
     })
+
+
+    app.delete('/user/:id', async(req, res) => {
+      const id = req.params.id;
+      const  query = {_id: new ObjectId(id)}
+      const result = await userCollection.deleteOne(query);
+      console.log(result);
+      res.send(result);
+    })
+
+    app.post('/user', async(req,res) =>{
+      const user = req.body;
+      console.log(user);
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -96,5 +135,5 @@ app.get('/', (req, res) =>{
 })
 
 app.listen(port, () => {
-    console.log(`coffee server is running is port: ${port}` );
+    console.log(`coffee server is running is port: ${port}`);
 })
